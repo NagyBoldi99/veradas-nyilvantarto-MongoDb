@@ -1,0 +1,67 @@
+<div class="container mt-5">
+
+  <div class="text-center mb-5">
+    <h2 class="section-title">Helyszínek kezelése</h2>
+    <p class="section-subtitle">Új helyszín rögzítése és meglévők kezelése</p>
+  </div>
+
+  <!-- Űrlap és Hozzáadás gomb csak bejelentkezettnek -->
+  <ng-container *ngIf="auth.isLoggedIn(); else loginPrompt">
+    <div class="card p-4 shadow-sm mb-5 add-location-card">
+      <form (ngSubmit)="addLocation()">
+        <div class="row g-3">
+          <div class="col-md-5">
+            <label class="form-label">Intézmény neve</label>
+            <input type="text" class="form-control"
+                   [(ngModel)]="newLocation.name" name="name" required>
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">Cím</label>
+            <input type="text" class="form-control"
+                   [(ngModel)]="newLocation.address" name="address" required>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input"
+                     [(ngModel)]="newLocation.active" name="active">
+              <label class="form-check-label">Aktív</label>
+            </div>
+          </div>
+        </div>
+        <div class="text-end mt-4">
+          <button type="submit" class="btn btn-red">Helyszín hozzáadása</button>
+        </div>
+      </form>
+    </div>
+  </ng-container>
+
+  <!-- Vendég üzenet -->
+  <ng-template #loginPrompt>
+    <div class="alert alert-info text-center mb-5">
+      Jelentkezz be az inaktív helyszínek megjelenítéséhez és kezeléséhez!
+    </div>
+  </ng-template>
+
+  <!-- Lista a látható helyszínekről -->
+  <div class="row g-4">
+    <div class="col-md-6" *ngFor="let loc of visibleLocations">
+      <div class="card shadow-sm location-card">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="card-title mb-1">{{ loc.name }}</h5>
+            <p class="card-text mb-2">{{ loc.address }}</p>
+            <span class="badge" [ngClass]="loc.active ? 'bg-active' : 'bg-inactive'">
+              {{ loc.active ? 'Aktív' : 'Inaktív' }}
+            </span>
+          </div>
+          <button *ngIf="auth.isLoggedIn()"
+                  class="btn btn-outline-red btn-sm"
+                  (click)="toggleActive(loc)">
+            Aktivál / Inaktivál
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

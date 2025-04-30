@@ -1,0 +1,22 @@
+<div class="d-flex justify-content-center align-items-center vh-100 bg-white">
+  <div class="text-center">
+    <h1 class="text-danger mb-4">Üdvözöllek a Véradó rendszerben!</h1>
+
+    <div class="mb-3">
+      <a routerLink="/locations" class="btn btn-outline-danger me-2">Helyszínek</a>
+      <a routerLink="/donors" class="btn btn-outline-danger me-2">Donorok</a>
+      <a routerLink="/donations" class="btn btn-outline-danger">Adományok</a>
+    </div>
+
+    <div>
+      <ng-container *ngIf="!isLoggedIn; else loggedInButtons">
+        <a routerLink="/login" class="btn btn-danger me-2">Bejelentkezés</a>
+        <a routerLink="/register" class="btn btn-light border border-danger text-danger">Regisztráció</a>
+      </ng-container>
+
+      <ng-template #loggedInButtons>
+        <button class="btn btn-dark" (click)="logout()">Kijelentkezés</button>
+      </ng-template>
+    </div>
+  </div>
+</div>

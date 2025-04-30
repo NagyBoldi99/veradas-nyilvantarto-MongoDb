@@ -1,0 +1,15 @@
+<div class="container mt-4">
+    <h3>Bejelentkezés</h3>
+    <form (ngSubmit)="login()">
+      <div class="mb-3">
+        <label for="username" class="form-label">Felhasználónév</label>
+        <input type="text" class="form-control" [(ngModel)]="username" name="username" required />
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Jelszó</label>
+        <input type="password" class="form-control" [(ngModel)]="password" name="password" required />
+      </div>
+      <button type="submit" class="btn btn-success">Bejelentkezés</button>
+    </form>
+  </div>
+  

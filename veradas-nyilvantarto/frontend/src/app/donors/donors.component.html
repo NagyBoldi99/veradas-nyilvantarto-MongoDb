@@ -1,0 +1,65 @@
+<div class="container mt-4">
+  <h2 class="text-danger mb-4">Véradók kezelése</h2>
+
+  <!-- Űrlap csak bejelentkezett felhasználóknak -->
+  <ng-container *ngIf="auth.isLoggedIn(); else loginPrompt">
+    <form (ngSubmit)="addDonor()" class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="name" class="form-label">Név</label>
+        <input id="name" type="text" class="form-control" [(ngModel)]="newDonor.name" name="name" required>
+      </div>
+      <div class="col-md-3">
+        <label for="gender" class="form-label">Nem</label>
+        <select id="gender" class="form-select" [(ngModel)]="newDonor.gender" name="gender" required>
+          <option value="" disabled selected>Válassz nemet</option>
+          <option value="Férfi">Férfi</option>
+          <option value="Nő">Nő</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="citizenship" class="form-label">Állampolgárság</label>
+        <input id="citizenship" type="text" class="form-control"
+               [(ngModel)]="newDonor.citizenship" name="citizenship" required>
+      </div>
+      <div class="col-md-4">
+        <label for="birthPlace" class="form-label">Születési hely</label>
+        <input id="birthPlace" type="text" class="form-control"
+               [(ngModel)]="newDonor.birthPlace" name="birthPlace" required>
+      </div>
+      <div class="col-md-4">
+        <label for="birthDate" class="form-label">Születési idő</label>
+        <input id="birthDate" type="date" class="form-control"
+               [(ngModel)]="newDonor.birthDate" name="birthDate" required>
+      </div>
+      <div class="col-md-4">
+        <label for="address" class="form-label">Lakcím</label>
+        <input id="address" type="text" class="form-control"
+               [(ngModel)]="newDonor.address" name="address" required>
+      </div>
+      <div class="col-12">
+        <label for="tajNumber" class="form-label">TAJ szám</label>
+        <input id="tajNumber" type="text" class="form-control"
+               [(ngModel)]="newDonor.tajNumber" name="tajNumber" required>
+      </div>
+      <div class="col-12 text-end">
+        <button type="submit" class="btn btn-danger">Mentés</button>
+      </div>
+    </form>
+  </ng-container>
+
+  <!-- Ha nincs bejelentkezve -->
+  <ng-template #loginPrompt>
+    <div class="alert alert-info text-center mb-4">
+      Jelentkezz be a donorok rögzítéséhez!
+    </div>
+  </ng-template>
+
+  <hr>
+
+  <h4 class="text-danger mb-3">Rögzített véradók:</h4>
+  <ul class="list-group">
+    <li class="list-group-item" *ngFor="let donor of donors">
+      <strong>{{ donor.name }}</strong> – {{ donor.tajNumber }} – {{ donor.address }}
+    </li>
+  </ul>
+</div>

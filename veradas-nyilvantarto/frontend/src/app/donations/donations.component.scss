@@ -1,0 +1,21 @@
+h2, h4 {
+  color: #b30000;
+}
+
+.btn-danger {
+  background-color: #b30000;
+  border: none;
+
+  &:hover {
+    background-color: #990000;
+  }
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+.list-group-item {
+  border-left: 5px solid #b30000;
+  margin-bottom: 4px;
+}

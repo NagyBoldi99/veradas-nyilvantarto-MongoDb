@@ -1,0 +1,109 @@
+<div class="container mt-4">
+  <h2 class="text-danger mb-4">Véradás kezelése</h2>
+
+  <!-- Űrlap csak bejelentkezett felhasználóknak -->
+  <ng-container *ngIf="auth.isLoggedIn(); else loginMsg">
+    <form (ngSubmit)="addDonation()" class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="form-label">Helyszín</label>
+        <select class="form-select" [(ngModel)]="newDonation.locationId" name="locationId" required>
+          <option value="" disabled selected>Válassz helyszínt</option>
+          <option *ngFor="let loc of locations" [value]="loc.id" [disabled]="!loc.active">
+            {{ loc.name }} – {{ loc.address }} <span *ngIf="!loc.active">(Inaktív)</span>
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Véradó</label>
+        <select class="form-select" [(ngModel)]="newDonation.donorId" name="donorId" required>
+          <option value="" disabled selected>Válassz véradót</option>
+          <option *ngFor="let d of donors" [value]="d.id">{{ d.name }}</option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Dátum</label>
+        <input type="date" class="form-control" [(ngModel)]="newDonation.date" name="date" required>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Orvos neve</label>
+        <input type="text" class="form-control" [(ngModel)]="newDonation.doctorName" name="doctorName" required>
+      </div>
+
+      <div class="col-md-4 d-flex align-items-center">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="newDonation.eligible" name="eligible" id="eligible">
+          <label class="form-check-label" for="eligible">Alkalmas</label>
+        </div>
+      </div>
+
+      <div class="col-12" *ngIf="!newDonation.eligible">
+        <label class="form-label text-danger">Alkalmatlanság oka</label>
+        <input type="text" class="form-control" [(ngModel)]="newDonation.ineligibilityReason" name="ineligibilityReason">
+      </div>
+
+      <div class="col-12">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="newDonation.directedDonation" name="directedDonation" id="directedDonation">
+          <label class="form-check-label" for="directedDonation">Irányított véradás</label>
+        </div>
+      </div>
+
+      <div class="col-md-6" *ngIf="newDonation.directedDonation">
+        <label class="form-label">Beteg neve</label>
+        <input type="text" class="form-control" [(ngModel)]="newDonation.patientName" name="patientName">
+      </div>
+
+      <div class="col-md-6" *ngIf="newDonation.directedDonation">
+        <label class="form-label">Beteg TAJ száma</label>
+        <input type="text" class="form-control" [(ngModel)]="newDonation.patientTaj" name="patientTaj">
+      </div>
+
+      <div class="col-12 text-end">
+        <button type="submit" class="btn btn-danger">Véradás rögzítése</button>
+      </div>
+    </form>
+  </ng-container>
+
+  <!-- Ha nincs bejelentkezve -->
+  <ng-template #loginMsg>
+    <div class="alert alert-info text-center mb-4">
+      Jelentkezz be az adomány rögzítéséhez!
+    </div>
+  </ng-template>
+
+  <hr class="my-4">
+
+  <h4 class="text-danger mb-3">Véradások listája</h4>
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <select class="form-select" [(ngModel)]="selectedLocationId" (change)="filterDonations()">
+        <option value="">Összes helyszín</option>
+        <option *ngFor="let loc of locations" [value]="loc.id">{{ loc.name }}</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" [(ngModel)]="selectedDonorId" (change)="filterDonations()">
+        <option value="">Összes véradó</option>
+        <option *ngFor="let d of donors" [value]="d.id">{{ d.name }}</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <input type="date" class="form-control" [(ngModel)]="dateFrom" (change)="filterDonations()" placeholder="Dátumtól">
+    </div>
+    <div class="col-md-3">
+      <input type="date" class="form-control" [(ngModel)]="dateTo" (change)="filterDonations()" placeholder="Dátumig">
+    </div>
+  </div>
+
+  <ul class="list-group">
+    <li class="list-group-item" *ngFor="let donation of donations">
+      <strong>{{ getDonorNameFromObject(donation) }}       
+      </strong> –{{ getLocationNameFromObject(donation) }}
+      <span class="badge bg-success ms-2" *ngIf="donation.eligible">Alkalmas</span>
+      <span class="badge bg-danger ms-2" *ngIf="!donation.eligible">Nem alkalmas</span>
+    </li>
+  </ul>
+</div>
