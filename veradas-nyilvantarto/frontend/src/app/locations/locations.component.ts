@@ -12,7 +12,7 @@ import { AuthService } from '../auth.service';
   styleUrls: ['./locations.component.scss']
 })
 export class LocationsComponent implements OnInit {
-  locations: Array<{ id: number; name: string; address: string; active: boolean }> = [];
+  locations: Array<{ _id: number; name: string; address: string; active: boolean }> = [];
   newLocation = { name: '', address: '', active: true };
 
   constructor(
@@ -54,7 +54,7 @@ export class LocationsComponent implements OnInit {
 
   /** Státusz váltása backend PATCH-tel */
   toggleActive(loc: any): void {
-    this.http.patch(`http://localhost:3000/locations/${loc.id}/toggle`, {})
+    this.http.patch(`http://localhost:3000/locations/${loc._id}/toggle`, {})
       .subscribe({
         next: () => this.loadLocations(),
         error: err => console.error(err)

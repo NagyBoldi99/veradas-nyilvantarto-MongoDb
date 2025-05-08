@@ -1,13 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import mongoose from 'mongoose';
 
-@Entity()
-export class User {
-  @PrimaryGeneratedColumn()
-  id!: number;
+const userSchema = new mongoose.Schema({
+  username: { type: String, unique: true, required: true },
+  password: { type: String, required: true },
+});
 
-  @Column({ unique: true })
-  username!: string;
-
-  @Column()
-  password!: string; // Hash-elt jelszót tárolunk majd
-}
+export const User = mongoose.model('User', userSchema);

@@ -8,7 +8,7 @@
         <label class="form-label">Helyszín</label>
         <select class="form-select" [(ngModel)]="newDonation.locationId" name="locationId" required>
           <option value="" disabled selected>Válassz helyszínt</option>
-          <option *ngFor="let loc of locations" [value]="loc.id" [disabled]="!loc.active">
+          <option *ngFor="let loc of locations" [value]="loc._id" [disabled]="!loc.active">
             {{ loc.name }} – {{ loc.address }} <span *ngIf="!loc.active">(Inaktív)</span>
           </option>
         </select>
@@ -18,7 +18,7 @@
         <label class="form-label">Véradó</label>
         <select class="form-select" [(ngModel)]="newDonation.donorId" name="donorId" required>
           <option value="" disabled selected>Válassz véradót</option>
-          <option *ngFor="let d of donors" [value]="d.id">{{ d.name }}</option>
+          <option *ngFor="let d of donors" [value]="d._id">{{ d.name }}</option>
         </select>
       </div>
 
@@ -81,13 +81,13 @@
     <div class="col-md-3">
       <select class="form-select" [(ngModel)]="selectedLocationId" (change)="filterDonations()">
         <option value="">Összes helyszín</option>
-        <option *ngFor="let loc of locations" [value]="loc.id">{{ loc.name }}</option>
+        <option *ngFor="let loc of locations" [value]="loc._id">{{ loc.name }}</option>
       </select>
     </div>
     <div class="col-md-3">
       <select class="form-select" [(ngModel)]="selectedDonorId" (change)="filterDonations()">
         <option value="">Összes véradó</option>
-        <option *ngFor="let d of donors" [value]="d.id">{{ d.name }}</option>
+        <option *ngFor="let d of donors" [value]="d._id">{{ d.name }}</option>
       </select>
     </div>
     <div class="col-md-3">

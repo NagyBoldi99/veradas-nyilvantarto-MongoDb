@@ -1,16 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import mongoose from 'mongoose';
 
-@Entity()
-export class Location {
-  @PrimaryGeneratedColumn()
-  id!: number;
+const locationSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  address: { type: String, required: true },
+  active: { type: Boolean, default: true },
+});
 
-  @Column({ type: 'varchar' })
-  name!: string;
-
-  @Column({ type: 'varchar' })
-  address!: string;
-
-  @Column({ type: 'boolean', default: true })
-  active!: boolean;
-}
+export const Location = mongoose.model('Location', locationSchema);

@@ -1,19 +1,16 @@
-import { DataSource } from 'typeorm';
-import { Location } from './entity/Location';
-import { Donor } from './entity/Donor';
-import { Donation } from './entity/Donation';
-import { User } from './entity/User';
+import mongoose from 'mongoose';
 
-export const AppDataSource = new DataSource({
-  type: 'mysql',
-  host: 'localhost',
-  port: 3306,
-  username: 'root',
-  password: '', // vagy amit beállítottál a WAMP-ben
-  database: 'veradas', // ezt hozzuk majd létre phpMyAdmin-ban
-  synchronize: true,
-  logging: false,
-  entities: [Location,Donor,Donation,User],
-  migrations: [],
-  subscribers: [],
-});
+const MONGO_URI = 'mongodb://localhost:27017/veradas'; // Update with your MongoDB URI
+
+const connectToMongoDB = async () => {
+  try {
+    await mongoose.connect(MONGO_URI);
+    console.log('Connected to MongoDB successfully!');
+    return mongoose.connection;
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    process.exit(1);
+  }
+};
+
+export default connectToMongoDB;

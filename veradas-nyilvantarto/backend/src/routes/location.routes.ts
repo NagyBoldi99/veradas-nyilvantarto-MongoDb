@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getAllLocations, createLocation, toggleActive } from '../controller/location.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
+
 const router = Router();
 
 router.get('/', getAllLocations);

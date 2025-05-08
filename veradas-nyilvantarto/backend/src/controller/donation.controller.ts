@@ -1,13 +1,9 @@
 import { Request, Response } from 'express';
-import { AppDataSource } from '../data-source';
 import { Donation } from '../entity/Donation';
 import { Donor } from '../entity/Donor';
 import { Location } from '../entity/Location';
 import { validateTaj } from '../utils/taj-validator';
-
-const donationRepo = AppDataSource.getRepository(Donation);
-const donorRepo = AppDataSource.getRepository(Donor);
-const locationRepo = AppDataSource.getRepository(Location);
+import mongoose from 'mongoose';
 
 export const createDonation = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -23,91 +19,144 @@ export const createDonation = async (req: Request, res: Response): Promise<void>
       patientTaj
     } = req.body;
 
-    // Ellenőrzések
-    if (!locationId || !donorId || !date || !doctorName || directedDonation === undefined || eligible === undefined) {
-      res.status(400).json({ message: 'Hiányzó adatok!' });
+    console.log('Received donation data:', req.body); // Debug logging
+
+    // Validation
+    if (!locationId || !donorId || !date || eligible === undefined || !doctorName || directedDonation === undefined) {
+      res.status(400).json({ message: 'Missing required fields', 
+        missing: {
+          locationId: !locationId,
+          donorId: !donorId,
+          date: !date,
+          eligible: eligible === undefined,
+          doctorName: !doctorName,
+          directedDonation: directedDonation === undefined
+        } 
+      });
       return;
     }
 
-    const location = await locationRepo.findOneBy({ id: locationId });
-    const donor = await donorRepo.findOneBy({ id: donorId });
-
-    if (!location || !donor) {
-      res.status(404).json({ message: 'Helyszín vagy véradó nem található!' });
+    // Validate ObjectIds
+    if (!mongoose.Types.ObjectId.isValid(locationId) || !mongoose.Types.ObjectId.isValid(donorId)) {
+      res.status(400).json({ message: 'Invalid location or donor ID format' });
       return;
     }
 
-    if (!eligible && directedDonation) {
-      res.status(400).json({ message: 'Alkalmatlan jelölt nem adhat irányított vért.' });
+    // Check if location and donor exist
+    const [location, donor] = await Promise.all([
+      Location.findById(locationId),
+      Donor.findById(donorId)
+    ]);
+
+    if (!location) {
+      res.status(404).json({ message: 'Location not found' });
       return;
     }
 
-    if (directedDonation && (!patientName || !patientTaj)) {
-      res.status(400).json({ message: 'Irányított véradásnál beteg neve és TAJ kötelező.' });
+    if (!donor) {
+      res.status(404).json({ message: 'Donor not found' });
       return;
     }
-    if (directedDonation && !validateTaj(patientTaj)) {
-      res.status(400).json({ message: 'Érvénytelen beteg TAJ szám!' });
+
+    // Directed donation validation
+    if (directedDonation === true) {
+      if (!patientName || !patientTaj) {
+        res.status(400).json({ message: 'Patient name and TAJ are required for directed donations' });
+        return;
+      }
+
+      if (!validateTaj(patientTaj)) {
+        res.status(400).json({ message: 'Invalid patient TAJ number' });
+        return;
+      }
+    }
+
+    // Ineligibility reason validation
+    if (eligible === false && !ineligibilityReason) {
+      res.status(400).json({ message: 'Reason is required for ineligible donations' });
       return;
+    }
+
+    // Prepare donation object with only the needed fields
+    const donationData: any = {
+      location: locationId,
+      donor: donorId,
+      date: new Date(date), // Ensure proper Date object
+      eligible,
+      doctorName,
+      directedDonation
+    };
+
+    // Add conditional fields
+    if (!eligible) {
+      donationData.ineligibilityReason = ineligibilityReason;
     }
     
+    if (directedDonation) {
+      donationData.patientName = patientName;
+      donationData.patientTaj = patientTaj;
+    }
 
-    // Irányított véradásnál ellenőrizzük a beteg TAJ számot is (ha akarsz, itt lehet majd beépíteni egy validateTaj()-t)
+    console.log('Creating donation with data:', donationData); // Debug logging
 
-    const donation = donationRepo.create({
-      location,
-      donor,
-      date,
-      eligible,
-      ineligibilityReason: eligible ? null : ineligibilityReason,
-      doctorName,
-      directedDonation,
-      patientName: directedDonation ? patientName : null,
-      patientTaj: directedDonation ? patientTaj : null,
-    });
-
-    const saved = await donationRepo.save(donation);
-    res.status(201).json(saved);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Szerverhiba' });
+    // Create and save the donation
+    const donation = new Donation(donationData);
+    const savedDonation = await donation.save();
+    
+    // Populate the references for the response
+    await savedDonation.populate(['donor', 'location']);
+    
+    console.log('Donation saved successfully:', savedDonation._id); // Debug logging
+    res.status(201).json(savedDonation);
+  } catch (error: any) {
+    console.error('Error saving donation:', error);
+    
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      res.status(400).json({ 
+        message: 'Validation error', 
+        errors: validationErrors,
+        details: error.message
+      });
+    } else {
+      res.status(500).json({ 
+        message: 'Server error saving donation', 
+        error: error.message 
+      });
+    }
   }
-
-  
 };
+
 export const getAllDonations = async (req: Request, res: Response): Promise<void> => {
   try {
     const { locationId, donorId, dateFrom, dateTo } = req.query;
 
-    let query = donationRepo
-      .createQueryBuilder('donation')
-      .leftJoinAndSelect('donation.location', 'location')
-      .leftJoinAndSelect('donation.donor', 'donor');
-
+    // Build the filter object
+    const filter: any = {};
+    
     if (locationId) {
-      query = query.andWhere('donation.locationId = :locationId', { locationId });
+      filter.location = locationId;
     }
-
+    
     if (donorId) {
-      query = query.andWhere('donation.donorId = :donorId', { donorId });
+      filter.donor = donorId;
+    }
+    
+    if (dateFrom || dateTo) {
+      filter.date = {};
+      if (dateFrom) filter.date.$gte = new Date(dateFrom as string);
+      if (dateTo) filter.date.$lte = new Date(dateTo as string);
     }
 
-    if (dateFrom) {
-      query = query.andWhere('donation.date >= :dateFrom', { dateFrom });
-    }
-
-    if (dateTo) {
-      query = query.andWhere('donation.date <= :dateTo', { dateTo });
-    }
-
-    const donations = await query.getMany();
+    const donations = await Donation.find(filter)
+      .populate('donor')
+      .populate('location');
+      
     res.json(donations);
-
-  } catch (error) {
+  } catch (error: any) { // Add proper typing
     console.error(error);
-    res.status(500).json({ message: 'Szerverhiba' });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-  
+
